@@ -18,10 +18,19 @@ typedef struct Map {
 int main(void)
 {
 
-    int screenWidth = 1000;
+    int screenWidth = 1500;
     int screenHeight = 1000;
 
     InitWindow(screenWidth, screenHeight, "Catch Game");
+
+    Image background = LoadImage("point.png");
+    Texture2D texture = LoadTextureFromImage(background);
+    Vector2 position = { 1000,0 };
+    Rectangle framerec = { 0.0f,0.0f,(float)500,(float)1000 };
+
+    Image end = LoadImage("end.png");
+    Texture2D textureend = LoadTextureFromImage(end);
+    Rectangle framerecend = { 0.10f,0.10f,(float)1000,(float)1000 };
 
     Player2* secondpeople = new Player2;
     Player1* firstpeople = new Player1;
@@ -66,7 +75,7 @@ int main(void)
     Texture2D texture2right = LoadTextureFromImage(pl2right);
     Rectangle framerec2right = { 0.10f,0.10f,(float)50,(float)50 };
 
-    Ghost* ghost1 = new Ghost(400, 100);
+    Ghost* ghost1 = new Ghost(rand() % 1000, rand() % 800);
     Image ghoststop = LoadImage("ghost_stop.png");
     Texture2D texture3stop = LoadTextureFromImage(ghoststop);
     Rectangle framerec3stop = { 0.10f,0.10f,(float)50,(float)50 };
@@ -258,6 +267,7 @@ int main(void)
                 DrawRectangleLines(x * MAP_TILE_SIZE, y * MAP_TILE_SIZE, MAP_TILE_SIZE, MAP_TILE_SIZE, Fade(BLACK, 0.5f));
             }
         }
+        DrawTextureRec(texture, framerec, position, WHITE);
         DrawTextureRec(p1movetexture, p1moveframe, { firstpeople->x, firstpeople->y }, WHITE);
         DrawTextureRec(p2movetexture, p2moveframe, { secondpeople->x, secondpeople->y }, WHITE);
         DrawTextureRec(ghostmovetexture, ghostmoveframe, { ghost1->x, ghost1->y }, WHITE);
@@ -288,11 +298,29 @@ int main(void)
             Ghost* ghost1 = new Ghost(rand() % 1000, rand() % 800);
         }
 
+        if (secondpeople->point == 10) {
+            DrawText(TextFormat("Second player wins"), 1000, 300, 20, LIME);
+            DrawText(TextFormat("                      Game Finished"), 1000, 400, 20, LIME);
+            DrawTextureRec(textureend, framerecend, { 0, 0 }, WHITE);
+        }
+        else if (firstpeople->point == 10) {
+            DrawText(TextFormat("First player wins"), 1000, 300, 20, LIME);
+            DrawText(TextFormat("                      Game Finished"), 1000, 400, 20, LIME);
+            DrawTextureRec(textureend, framerecend, { 0, 0 }, WHITE);
+        }
+        DrawText(TextFormat("                      Point Table"), 1000, 20, 20, LIME);
+        DrawText(TextFormat("The first player point is : %i", firstpeople->point), 1000, 100, 20, LIME);
+        DrawText(TextFormat("The second player point is : %i", secondpeople->point), 1000, 200, 20, LIME);
+        DrawText(TextFormat("        For exit the game press enter key "), 1000, 500, 20, LIME);
+        if (IsKeyDown(KEY_ENTER)) {
+            break;
+        }
+
         ClearBackground(RAYWHITE);
         EndDrawing();
     }
     free(map.tileIds);
-    free(map.tileFog);
+    free(map.tileFog); 
 
     UnloadRenderTexture(fogOfWar);
     CloseWindow();
