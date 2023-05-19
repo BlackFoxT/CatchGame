@@ -6,11 +6,13 @@
 
 #define MAP_TILE_SIZE    50  
 #define PLAYER_SIZE    50
+#define PLAYER_TILE_VISIBILITY  2
 
 typedef struct Map {
     unsigned int tilesX;
     unsigned int tilesY;
     unsigned char* tileIds;
+    unsigned char* tileFog;
 } Map;
 
 int main(void)
@@ -42,7 +44,7 @@ int main(void)
 
     Image pl1left = LoadImage("boy_left_1.png");
     Texture2D textureleft = LoadTextureFromImage(pl1left);
-   Rectangle framerecleft = { 0.10f,0.10f,(float)50,(float)50 };
+    Rectangle framerecleft = { 0.10f,0.10f,(float)50,(float)50 };
 
     Image pl2stop = LoadImage("boy_stop_2.png");
     Texture2D texture2stop = LoadTextureFromImage(pl2stop);
@@ -71,7 +73,7 @@ int main(void)
 
     Image ghostup = LoadImage("ghost_up.png");
     Texture2D texture3up = LoadTextureFromImage(ghostup);
-   Rectangle framerec3up = { 0.10f,0.10f,(float)50,(float)50 };
+    Rectangle framerec3up = { 0.10f,0.10f,(float)50,(float)50 };
 
     Image ghostdown = LoadImage("ghost_down.png");
     Texture2D texture3down = LoadTextureFromImage(ghostdown);
@@ -93,9 +95,22 @@ int main(void)
 
 
     map.tileIds = (unsigned char*)calloc(map.tilesX * map.tilesY, sizeof(unsigned char));
-
+    map.tileFog = (unsigned char*)calloc(map.tilesX * map.tilesY, sizeof(unsigned char));
 
     for (unsigned int i = 0; i < map.tilesY * map.tilesX; i++) map.tileIds[i] = GetRandomValue(0, 1);
+
+    Vector2 playerPosition = { 180, 130 };
+    int player1TileX = 0;
+    int player1TileY = 0;
+
+    int player2TileX = 0;
+    int player2TileY = 0;
+
+    int ghostTileX = 0;
+    int ghostTileY = 0;
+
+    RenderTexture2D fogOfWar = LoadRenderTexture(map.tilesX, map.tilesY);
+    SetTextureFilter(fogOfWar.texture, TEXTURE_FILTER_BILINEAR);
 
     SetTargetFPS(60);
 
@@ -152,7 +167,7 @@ int main(void)
                 firstpeople->left();
                 p1movetexture = textureleft;
                 p1moveframe = framerecleft;
-           }
+            }
             else
                 if (IsKeyDown(KEY_UP)) {
                     firstpeople->up();
@@ -202,11 +217,35 @@ int main(void)
             p2movetexture = texture2stop;
             p2moveframe = framerec2stop;
         }
-       
+
         if (secondpeople->x < 0) secondpeople->x = 0;
         else if ((secondpeople->x + PLAYER_SIZE) > (map.tilesX * MAP_TILE_SIZE)) secondpeople->x = (float)map.tilesX * MAP_TILE_SIZE - PLAYER_SIZE;
         if (secondpeople->y < 0) secondpeople->y = 0;
         else if ((secondpeople->y + PLAYER_SIZE) > (map.tilesY * MAP_TILE_SIZE)) secondpeople->y = (float)map.tilesY * MAP_TILE_SIZE - PLAYER_SIZE;
+
+        for (unsigned int i = 0; i < map.tilesX * map.tilesY; i++) if (map.tileFog[i] == 1) map.tileFog[i] = 2;
+
+        player1TileX = (int)((firstpeople->x + MAP_TILE_SIZE / 2) / MAP_TILE_SIZE);
+        player1TileY = (int)((firstpeople->y + MAP_TILE_SIZE / 2) / MAP_TILE_SIZE);
+
+        player2TileX = (int)((secondpeople->x + MAP_TILE_SIZE / 2) / MAP_TILE_SIZE);
+        player2TileY = (int)((secondpeople->y + MAP_TILE_SIZE / 2) / MAP_TILE_SIZE);
+
+        for (int y = (player1TileY - PLAYER_TILE_VISIBILITY); y < (player1TileY + PLAYER_TILE_VISIBILITY); y++)
+            for (int x = (player1TileX - PLAYER_TILE_VISIBILITY); x < (player1TileX + PLAYER_TILE_VISIBILITY); x++)
+                if ((x >= 0) && (x < (int)map.tilesX) && (y >= 0) && (y < (int)map.tilesY)) map.tileFog[y * map.tilesX + x] = 1;
+
+        for (int y = (player2TileY - PLAYER_TILE_VISIBILITY); y < (player2TileY + PLAYER_TILE_VISIBILITY); y++)
+            for (int x = (player2TileX - PLAYER_TILE_VISIBILITY); x < (player2TileX + PLAYER_TILE_VISIBILITY); x++)
+                if ((x >= 0) && (x < (int)map.tilesX) && (y >= 0) && (y < (int)map.tilesY)) map.tileFog[y * map.tilesX + x] = 1;
+
+        BeginTextureMode(fogOfWar);
+        ClearBackground(BLANK);
+        for (unsigned int y = 0; y < map.tilesY; y++)
+            for (unsigned int x = 0; x < map.tilesX; x++)
+                if (map.tileFog[y * map.tilesX + x] == 0) DrawRectangle(x, y, 1, 1, BLACK);
+                else if (map.tileFog[y * map.tilesX + x] == 2) DrawRectangle(x, y, 1, 1, BLACK);
+        EndTextureMode();
 
         BeginDrawing();
 
@@ -223,11 +262,21 @@ int main(void)
         DrawTextureRec(p2movetexture, p2moveframe, { secondpeople->x, secondpeople->y }, WHITE);
         DrawTextureRec(ghostmovetexture, ghostmoveframe, { ghost1->x, ghost1->y }, WHITE);
 
+        DrawTexturePro(fogOfWar.texture, { 0, 0, (float)fogOfWar.texture.width, (float)-fogOfWar.texture.height },
+            {
+            0, 0, (float)map.tilesX * MAP_TILE_SIZE, (float)map.tilesY * MAP_TILE_SIZE
+            },
+            {
+            0, 0
+            }, 0.0f, WHITE);
+
         ClearBackground(RAYWHITE);
         EndDrawing();
     }
     free(map.tileIds);
+    free(map.tileFog); 
 
+    UnloadRenderTexture(fogOfWar);
     CloseWindow();
 
     return 0;
