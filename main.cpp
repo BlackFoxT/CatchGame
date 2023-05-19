@@ -270,11 +270,29 @@ int main(void)
             0, 0
             }, 0.0f, WHITE);
 
+        if ((firstpeople->x - ghost1->x >= -25 && firstpeople->x - ghost1->x <= 25) && (firstpeople->y - ghost1->y >= -25 && firstpeople->y - ghost1->y <= 25)) {
+            firstpeople->point += 5;
+            int x1 = ghost1->x;
+            int y1 = ghost1->y;
+
+            delete ghost1;
+
+            Ghost* ghost1 = new Ghost(rand() % 1000, rand() % 800);
+        }
+
+        if ((secondpeople->x - ghost1->x >= -25 && secondpeople->x - ghost1->x <= 25) && (secondpeople->y - ghost1->y >= -25 && secondpeople->y - ghost1->y <= 25)) {
+            secondpeople->point += 5;
+            int x2 = ghost1->x + 1;
+            int y2 = ghost1->y + 1;
+            delete ghost1;
+            Ghost* ghost1 = new Ghost(rand() % 1000, rand() % 800);
+        }
+
         ClearBackground(RAYWHITE);
         EndDrawing();
     }
     free(map.tileIds);
-    free(map.tileFog); 
+    free(map.tileFog);
 
     UnloadRenderTexture(fogOfWar);
     CloseWindow();
