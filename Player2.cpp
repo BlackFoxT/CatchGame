@@ -3,8 +3,8 @@
 
 
 Player2::Player2() {
-	x = 180;
-	y = 130;
+	x = 300;
+	y = 400;
 	speed = 3;
 }
 void Player2::up() {
@@ -17,14 +17,14 @@ void Player2::up() {
 void Player2::down() {
 	//down button
 	y += speed;
-	if (y > 1450)
-		y = 1450;
+	if (y > 950)
+		y = 950;
 }
 void Player2::right() {
 	//right button
 	x += speed;
-	if (x > 1150)
-		x = 1150;
+	if (x > 950)
+		x = 950;
 }
 void Player2::left() {
 	//left button
