@@ -20,14 +20,14 @@ void Ghost::up() {
 void Ghost::down() {
 	//down button
 	y += speed;
-	if (y > 1450)
-		y = 1450;
+	if (y > 950)
+		y = 950;
 }
 void Ghost::right() {
 	//right button
 	x += speed;
-	if (x > 1150)
-		x = 1150;
+	if (x > 950)
+		x = 950;
 }
 void Ghost::left() {
 	//left button
