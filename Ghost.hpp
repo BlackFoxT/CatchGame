@@ -7,10 +7,13 @@ public:
 	~Ghost();
 	float x, y;
 	float speed;
-	void up();
-	void down();
-	void right();
-	void left();
+	Texture2D ghostmovetexture;
+	Rectangle ghostmoveframe;
+	void up(Texture2D texture, Rectangle frame);
+	void down(Texture2D texture, Rectangle frame);
+	void right(Texture2D texture, Rectangle frame);
+	void left(Texture2D texture, Rectangle frame);
 
 
 };
+
