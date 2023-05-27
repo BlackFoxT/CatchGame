@@ -6,7 +6,6 @@
 #include "Ghost.hpp"
 #include <stdlib.h>  
 
-
 #define RLGL_SRC_ALPHA 0x0302
 #define RLGL_MIN 0x8007
 #define RLGL_MAX 0x8008
@@ -35,8 +34,39 @@ typedef struct LightInfo {
 LightInfo lights1[MAX_LIGHTS] = { 0 };
 LightInfo lights2[MAX_LIGHTS] = { 0 };
 
-void MoveLight(int slot, float x, float y, LightInfo lights[MAX_LIGHTS])
-{
+void GhostMove(int* step, int* ghostdirection, Ghost* ghost, Texture2D texture3up, Rectangle framerec3up, Texture2D texture3down, Rectangle framerec3down, Texture2D texture3left, Rectangle framerec3left, Texture2D texture3right, Rectangle framerec3right, Texture2D texture3upright, Rectangle framerec3upright, Texture2D texture3upleft, Rectangle framerec3upleft, Texture2D texture3downright, Rectangle framerec3downright, Texture2D texture3downleft, Rectangle framerec3downleft) {
+    if (*step < 0) {
+        *ghostdirection = rand() % 8;
+        *step = 150;
+    }
+    *step = *step-1;
+    if (*ghostdirection == 0) {
+        ghost->up(texture3up, framerec3up);
+    }
+    else if (*ghostdirection == 1) {
+        ghost->down(texture3down, framerec3down);
+    }
+    else if (*ghostdirection == 2) {
+        ghost->left(texture3left, framerec3left);
+    }
+    else if (*ghostdirection == 3) {
+        ghost->right(texture3right, framerec3right);
+    }
+    else if (*ghostdirection == 4) {
+        ghost->upright(texture3upright, framerec3upright);
+    }
+    else if (*ghostdirection == 5) {
+        ghost->upleft(texture3upleft, framerec3upleft);
+    }
+    else if (*ghostdirection == 6) {
+        ghost->downright(texture3downright, framerec3downright);
+    }
+    else if (*ghostdirection == 7) {
+        ghost->downleft(texture3downleft, framerec3downleft);
+    }
+}
+
+void MoveLight(int slot, float x, float y, LightInfo lights[MAX_LIGHTS]){
     lights[slot].dirty = true;
     lights[slot].position.x = x;
     lights[slot].position.y = y;
@@ -59,17 +89,15 @@ void ComputeShadowVolumeForEdge(int slot, Vector2 sp, Vector2 ep, LightInfo ligh
     lights[slot].shadows[lights[slot].shadowCount].vertices[1] = ep;
     lights[slot].shadows[lights[slot].shadowCount].vertices[2] = epProjection;
     lights[slot].shadows[lights[slot].shadowCount].vertices[3] = spProjection;
-
 }
 
-void DrawLightMask(int slot, LightInfo lights[MAX_LIGHTS])
-{
+void DrawLightMask(int slot, LightInfo lights[MAX_LIGHTS]){
     BeginTextureMode(lights[slot].mask);
     ClearBackground(WHITE);
     rlSetBlendFactors(RLGL_SRC_ALPHA, RLGL_SRC_ALPHA, RLGL_MIN);
     rlSetBlendMode(BLEND_CUSTOM);
 
-    if (lights[slot].valid) DrawCircleGradient((int)lights[slot].position.x+25, (int)lights[slot].position.y+25, lights[slot].outerRadius, ColorAlpha(WHITE, 0), WHITE);
+    if (lights[slot].valid) DrawCircleGradient((int)lights[slot].position.x + 25, (int)lights[slot].position.y + 25, lights[slot].outerRadius, ColorAlpha(WHITE, 0), WHITE);
 
     rlSetBlendMode(BLEND_ALPHA);
     rlSetBlendMode(BLEND_CUSTOM);
@@ -78,8 +106,7 @@ void DrawLightMask(int slot, LightInfo lights[MAX_LIGHTS])
     EndTextureMode();
 }
 
-void SetupLight(int slot, float x, float y, float radius, LightInfo lights[MAX_LIGHTS])
-{
+void SetupLight(int slot, float x, float y, float radius, LightInfo lights[MAX_LIGHTS]){
     lights[slot].active = true;
     lights[slot].valid = false;
     lights[slot].mask = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
@@ -91,16 +118,14 @@ void SetupLight(int slot, float x, float y, float radius, LightInfo lights[MAX_L
     DrawLightMask(slot, lights);
 }
 
-bool UpdateLight(int slot, Rectangle* boxes, int count, LightInfo lights[MAX_LIGHTS])
-{
+bool UpdateLight(int slot, Rectangle* boxes, int count, LightInfo lights[MAX_LIGHTS]){
     if (!lights[slot].active || !lights[slot].dirty) return false;
 
     lights[slot].dirty = false;
     lights[slot].shadowCount = 0;
     lights[slot].valid = false;
 
-    for (int i = 0; i < count; i++)
-    {
+    for (int i = 0; i < count; i++){
         if (CheckCollisionPointRec(lights[slot].position, boxes[i])) return false;
 
         if (!CheckCollisionRecs(lights[slot].bounds, boxes[i])) continue;
@@ -133,8 +158,7 @@ bool UpdateLight(int slot, Rectangle* boxes, int count, LightInfo lights[MAX_LIG
     return true;
 }
 
-int main(void)
-{
+int main(void){
     const int screenWidth = 1500;
     const int screenHeight = 1000;
 
@@ -175,6 +199,22 @@ int main(void)
     Texture2D textureleft = LoadTextureFromImage(pl1left);
     Rectangle framerecleft = { 0.10f,0.10f,(float)50,(float)50 };
 
+    Image pl1upleft = LoadImage("boy_upleft_1.png");
+    Texture2D textureupleft = LoadTextureFromImage(pl1upleft);
+    Rectangle framerecupleft = { 0.10f,0.10f,(float)50,(float)50 };
+
+    Image pl1downleft = LoadImage("boy_downleft_1.png");
+    Texture2D texturedownleft = LoadTextureFromImage(pl1downleft);
+    Rectangle framerecdownleft = { 0.10f,0.10f,(float)50,(float)50 };
+
+    Image pl1upright = LoadImage("boy_upright_1.png");
+    Texture2D textureupright = LoadTextureFromImage(pl1upright);
+    Rectangle framerecupright = { 0.10f,0.10f,(float)50,(float)50 };
+
+    Image pl1downright = LoadImage("boy_downright_1.png");
+    Texture2D texturedownright = LoadTextureFromImage(pl1downright);
+    Rectangle framerecdownright = { 0.10f,0.10f,(float)50,(float)50 };
+
     Image pl2stop = LoadImage("boy_stop_2.png");
     Texture2D texture2stop = LoadTextureFromImage(pl2stop);
     Rectangle framerec2stop = { 0.10f,0.10f,(float)50,(float)50 };
@@ -194,6 +234,22 @@ int main(void)
     Image pl2right = LoadImage("boy_right_2.png");
     Texture2D texture2right = LoadTextureFromImage(pl2right);
     Rectangle framerec2right = { 0.10f,0.10f,(float)50,(float)50 };
+
+    Image pl2upleft = LoadImage("boy_upleft_2.png");
+    Texture2D texture2upleft = LoadTextureFromImage(pl2upleft);
+    Rectangle framerec2upleft = { 0.10f,0.10f,(float)50,(float)50 };
+
+    Image pl2downleft = LoadImage("boy_downleft_2.png");
+    Texture2D texture2downleft = LoadTextureFromImage(pl2downleft);
+    Rectangle framerec2downleft = { 0.10f,0.10f,(float)50,(float)50 };
+
+    Image pl2upright = LoadImage("boy_upright_2.png");
+    Texture2D texture2upright = LoadTextureFromImage(pl2upright);
+    Rectangle framerec2upright = { 0.10f,0.10f,(float)50,(float)50 };
+
+    Image pl2downright = LoadImage("boy_downright_2.png");
+    Texture2D texture2downright = LoadTextureFromImage(pl2downright);
+    Rectangle framerec2downright = { 0.10f,0.10f,(float)50,(float)50 };
 
     Image ghoststop = LoadImage("ghost_stop.png");
     Texture2D texture3stop = LoadTextureFromImage(ghoststop);
@@ -215,6 +271,21 @@ int main(void)
     Texture2D texture3right = LoadTextureFromImage(ghostright);
     Rectangle framerec3right = { 0.10f,0.10f,(float)50,(float)50 };
 
+    Image ghostupright = LoadImage("ghost_upright.png");
+    Texture2D texture3upright = LoadTextureFromImage(ghostupright);
+    Rectangle framerec3upright = { 0.10f,0.10f,(float)50,(float)50 };
+
+    Image ghostupleft = LoadImage("ghost_upleft.png");
+    Texture2D texture3upleft = LoadTextureFromImage(ghostupleft);
+    Rectangle framerec3upleft = { 0.10f,0.10f,(float)50,(float)50 };
+
+    Image ghostdownright = LoadImage("ghost_downright.png");
+    Texture2D texture3downright = LoadTextureFromImage(ghostdownright);
+    Rectangle framerec3downright = { 0.10f,0.10f,(float)50,(float)50 };
+
+    Image ghostdownleft = LoadImage("ghost_downleft.png");
+    Texture2D texture3downleft = LoadTextureFromImage(ghostdownleft);
+    Rectangle framerec3downleft = { 0.10f,0.10f,(float)50,(float)50 };
 
     Image ghostdead = LoadImage("ghost_dead.png");
     Texture2D texture3dead = LoadTextureFromImage(ghostdead);
@@ -252,7 +323,7 @@ int main(void)
     int ghost9dead = 1;
     int ghost10dead = 1;
 
-    int ghostdirections[] = { rand() % 4,rand() % 4,rand() % 4,rand() % 4,rand() % 4,rand() % 4,rand() % 4,rand() % 4,rand() % 4,rand() % 4 };
+    int ghostdirections[] = { rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8 };
     int steps[] = { 150,150,150,150,150,150,150,150,150,150 };
     float ghostdeadposx[] = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
     float ghostdeadposy[] = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
@@ -262,229 +333,96 @@ int main(void)
     secondpeople->p2movetexture = texture2stop;
     secondpeople->p2moveframe = framerec2stop;
 
-    while (!WindowShouldClose())
-    {
-        if (ghost1dead == 0) {
-            if (steps[0] < 0) {
-                ghostdirections[0] = rand() % 4;
-                steps[0] = 150;
-            }
-            steps[0]--;
-            if (ghostdirections[0] == 0) {
-                ghost1->up(texture3up, framerec3up);
-            }
-            else if (ghostdirections[0] == 1) {
-                ghost1->down(texture3down, framerec3down);
-            }
-            else if (ghostdirections[0] == 2) {
-                ghost1->left(texture3left, framerec3left);
-            }
-            else if (ghostdirections[0] == 3) {
-                ghost1->right(texture3right, framerec3right);
-            }
+    while (!WindowShouldClose()) {
+        if (ghost1dead == 0)
+            GhostMove(&steps[0], &ghostdirections[0], ghost1, texture3up, framerec3up, texture3down, framerec3down, texture3left, framerec3left, texture3right, framerec3right, texture3upright, framerec3upright, texture3upleft, framerec3upleft, texture3downright, framerec3downright, texture3downleft, framerec3downleft);
+        if (ghost2dead == 0)
+            GhostMove(&steps[1], &ghostdirections[1], ghost2, texture3up, framerec3up, texture3down, framerec3down, texture3left, framerec3left, texture3right, framerec3right, texture3upright, framerec3upright, texture3upleft, framerec3upleft, texture3downright, framerec3downright, texture3downleft, framerec3downleft);
+        if (ghost3dead == 0)
+            GhostMove(&steps[2], &ghostdirections[2], ghost3, texture3up, framerec3up, texture3down, framerec3down, texture3left, framerec3left, texture3right, framerec3right, texture3upright, framerec3upright, texture3upleft, framerec3upleft, texture3downright, framerec3downright, texture3downleft, framerec3downleft);
+        if (ghost4dead == 0)
+            GhostMove(&steps[3], &ghostdirections[3], ghost4, texture3up, framerec3up, texture3down, framerec3down, texture3left, framerec3left, texture3right, framerec3right, texture3upright, framerec3upright, texture3upleft, framerec3upleft, texture3downright, framerec3downright, texture3downleft, framerec3downleft);
+        if (ghost5dead == 0)
+            GhostMove(&steps[4], &ghostdirections[4], ghost5, texture3up, framerec3up, texture3down, framerec3down, texture3left, framerec3left, texture3right, framerec3right, texture3upright, framerec3upright, texture3upleft, framerec3upleft, texture3downright, framerec3downright, texture3downleft, framerec3downleft);
+        if (ghost6dead == 0)
+            GhostMove(&steps[5], &ghostdirections[5], ghost6, texture3up, framerec3up, texture3down, framerec3down, texture3left, framerec3left, texture3right, framerec3right, texture3upright, framerec3upright, texture3upleft, framerec3upleft, texture3downright, framerec3downright, texture3downleft, framerec3downleft);
+        if (ghost7dead == 0)
+            GhostMove(&steps[6], &ghostdirections[6], ghost7, texture3up, framerec3up, texture3down, framerec3down, texture3left, framerec3left, texture3right, framerec3right, texture3upright, framerec3upright, texture3upleft, framerec3upleft, texture3downright, framerec3downright, texture3downleft, framerec3downleft);
+        if (ghost8dead == 0)
+            GhostMove(&steps[7], &ghostdirections[7], ghost8, texture3up, framerec3up, texture3down, framerec3down, texture3left, framerec3left, texture3right, framerec3right, texture3upright, framerec3upright, texture3upleft, framerec3upleft, texture3downright, framerec3downright, texture3downleft, framerec3downleft);
+        if (ghost9dead == 0)
+            GhostMove(&steps[8], &ghostdirections[8], ghost9, texture3up, framerec3up, texture3down, framerec3down, texture3left, framerec3left, texture3right, framerec3right, texture3upright, framerec3upright, texture3upleft, framerec3upleft, texture3downright, framerec3downright, texture3downleft, framerec3downleft);
+        if (ghost10dead == 0)
+            GhostMove(&steps[9], &ghostdirections[9], ghost10, texture3up, framerec3up, texture3down, framerec3down, texture3left, framerec3left, texture3right, framerec3right, texture3upright, framerec3upright, texture3upleft, framerec3upleft, texture3downright, framerec3downright, texture3downleft, framerec3downleft);
+
+        if (IsKeyDown(KEY_RIGHT) && IsKeyDown(KEY_UP)) {
+            firstpeople->upright(textureupright, framerecupright);
+            MoveLight(0, firstpeople->x, firstpeople->y, lights1);
+            DrawTextureRec(firstpeople->p1movetexture, firstpeople->p1moveframe, { firstpeople->x, firstpeople->y }, WHITE);
         }
-        if (ghost2dead == 0) {
-            if (steps[1] < 0) {
-                ghostdirections[1] = rand() % 4;
-                steps[1] = 150;
-            }
-            steps[1]--;
-            if (ghostdirections[1] == 0) {
-                ghost2->up(texture3up, framerec3up);
-            }
-            else if (ghostdirections[1] == 1) {
-                ghost2->down(texture3down, framerec3down);
-            }
-            else if (ghostdirections[1] == 2) {
-                ghost2->left(texture3left, framerec3left);
-            }
-            else if (ghostdirections[1] == 3) {
-                ghost2->right(texture3right, framerec3right);
-            }
+        else if (IsKeyDown(KEY_LEFT) && IsKeyDown(KEY_UP)) {
+            firstpeople->upleft(textureupleft, framerecupleft);
+            MoveLight(0, firstpeople->x, firstpeople->y, lights1);
+            DrawTextureRec(firstpeople->p1movetexture, firstpeople->p1moveframe, { firstpeople->x, firstpeople->y }, WHITE);
         }
-        if (ghost3dead == 0) {
-            if (steps[2] < 0) {
-                ghostdirections[2] = rand() % 4;
-                steps[2] = 150;
-            }
-            steps[2]--;
-            if (ghostdirections[2] == 0) {
-                ghost3->up(texture3up, framerec3up);
-            }
-            else if (ghostdirections[2] == 1) {
-                ghost3->down(texture3down, framerec3down);
-            }
-            else if (ghostdirections[2] == 2) {
-                ghost3->left(texture3left, framerec3left);
-            }
-            else if (ghostdirections[2] == 3) {
-                ghost3->right(texture3right, framerec3right);
-            }
+        else if (IsKeyDown(KEY_RIGHT) && IsKeyDown(KEY_DOWN)) {
+            firstpeople->downright(texturedownright, framerecdownright);
+            MoveLight(0, firstpeople->x, firstpeople->y, lights1);
+            DrawTextureRec(firstpeople->p1movetexture, firstpeople->p1moveframe, { firstpeople->x, firstpeople->y }, WHITE);
         }
-        if (ghost4dead == 0) {
-            if (steps[3] < 0) {
-                ghostdirections[3] = rand() % 4;
-                steps[3] = 150;
-            }
-            steps[3]--;
-            if (ghostdirections[3] == 0) {
-                ghost4->up(texture3up, framerec3up);
-            }
-            else if (ghostdirections[3] == 1) {
-                ghost4->down(texture3down, framerec3down);
-            }
-            else if (ghostdirections[3] == 2) {
-                ghost4->left(texture3left, framerec3left);
-            }
-            else if (ghostdirections[3] == 3) {
-                ghost4->right(texture3right, framerec3right);
-            }
+        else if (IsKeyDown(KEY_LEFT) && IsKeyDown(KEY_DOWN)) {
+            firstpeople->downleft(texturedownleft, framerecdownleft);
+            MoveLight(0, firstpeople->x, firstpeople->y, lights1);
+            DrawTextureRec(firstpeople->p1movetexture, firstpeople->p1moveframe, { firstpeople->x, firstpeople->y }, WHITE);
         }
-        if (ghost5dead == 0) {
-            if (steps[4] < 0) {
-                ghostdirections[4] = rand() % 4;
-                steps[4] = 150;
-            }
-            steps[4]--;
-            if (ghostdirections[4] == 0) {
-                ghost5->up(texture3up, framerec3up);
-            }
-            else if (ghostdirections[4] == 1) {
-                ghost5->down(texture3down, framerec3down);
-            }
-            else if (ghostdirections[4] == 2) {
-                ghost5->left(texture3left, framerec3left);
-            }
-            else if (ghostdirections[4] == 3) {
-                ghost5->right(texture3right, framerec3right);
-            }
-        }
-        if (ghost6dead == 0) {
-            if (steps[5] < 0) {
-                ghostdirections[5] = rand() % 4;
-                steps[5] = 150;
-            }
-            steps[5]--;
-            if (ghostdirections[5] == 0) {
-                ghost6->up(texture3up, framerec3up);
-            }
-            else if (ghostdirections[5] == 1) {
-                ghost6->down(texture3down, framerec3down);
-            }
-            else if (ghostdirections[5] == 2) {
-                ghost6->left(texture3left, framerec3left);
-            }
-            else if (ghostdirections[5] == 3) {
-                ghost6->right(texture3right, framerec3right);
-            }
-        }
-        if (ghost7dead == 0) {
-            if (steps[6] < 0) {
-                ghostdirections[6] = rand() % 4;
-                steps[6] = 150;
-            }
-            steps[6]--;
-            if (ghostdirections[6] == 0) {
-                ghost7->up(texture3up, framerec3up);
-            }
-            else if (ghostdirections[6] == 1) {
-                ghost7->down(texture3down, framerec3down);
-            }
-            else if (ghostdirections[6] == 2) {
-                ghost7->left(texture3left, framerec3left);
-            }
-            else if (ghostdirections[6] == 3) {
-                ghost7->right(texture3right, framerec3right);
-            }
-        }
-        if (ghost8dead == 0) {
-            if (steps[7] < 0) {
-                ghostdirections[7] = rand() % 4;
-                steps[7] = 150;
-            }
-            steps[7]--;
-            if (ghostdirections[7] == 0) {
-                ghost8->up(texture3up, framerec3up);
-            }
-            else if (ghostdirections[7] == 1) {
-                ghost8->down(texture3down, framerec3down);
-            }
-            else if (ghostdirections[7] == 2) {
-                ghost8->left(texture3left, framerec3left);
-            }
-            else if (ghostdirections[7] == 3) {
-                ghost8->right(texture3right, framerec3right);
-            }
-        }
-        if (ghost9dead == 0) {
-            if (steps[8] < 0) {
-                ghostdirections[8] = rand() % 4;
-                steps[8] = 150;
-            }
-            steps[8]--;
-            if (ghostdirections[8] == 0) {
-                ghost9->up(texture3up, framerec3up);
-            }
-            else if (ghostdirections[8] == 1) {
-                ghost9->down(texture3down, framerec3down);
-            }
-            else if (ghostdirections[8] == 2) {
-                ghost9->left(texture3left, framerec3left);
-            }
-            else if (ghostdirections[8] == 3) {
-                ghost9->right(texture3right, framerec3right);
-            }
-        }
-        if (ghost10dead == 0) {
-            if (steps[9] < 0) {
-                ghostdirections[9] = rand() % 4;
-                steps[9] = 150;
-            }
-            steps[9]--;
-            if (ghostdirections[9] == 0) {
-                ghost10->up(texture3up, framerec3up);
-            }
-            else if (ghostdirections[9] == 1) {
-                ghost10->down(texture3down, framerec3down);
-            }
-            else if (ghostdirections[9] == 2) {
-                ghost10->left(texture3left, framerec3left);
-            }
-            else if (ghostdirections[9] == 3) {
-                ghost10->right(texture3right, framerec3right);
-            }
-        }
-        if (IsKeyDown(KEY_RIGHT)) {
+        else if (IsKeyDown(KEY_RIGHT)) {
             firstpeople->right(textureright, framerecright);
             MoveLight(0, firstpeople->x, firstpeople->y, lights1);
             DrawTextureRec(firstpeople->p1movetexture, firstpeople->p1moveframe, { firstpeople->x, firstpeople->y }, WHITE);
         }
-        else
-            if (IsKeyDown(KEY_LEFT)) {
-                firstpeople->left(textureleft, framerecleft);
-                MoveLight(0, firstpeople->x, firstpeople->y, lights1);
-                DrawTextureRec(firstpeople->p1movetexture, firstpeople->p1moveframe, { firstpeople->x, firstpeople->y }, WHITE);
-            }
-            else
-                if (IsKeyDown(KEY_UP)) {
-                    firstpeople->up(textureup, framerecup);
-                    MoveLight(0, firstpeople->x, firstpeople->y, lights1);
-                    DrawTextureRec(firstpeople->p1movetexture, firstpeople->p1moveframe, { firstpeople->x, firstpeople->y }, WHITE);
-                }
-                else
-                    if (IsKeyDown(KEY_DOWN)) {
-                        firstpeople->down(texturedown, framerecdown);
-                        MoveLight(0, firstpeople->x, firstpeople->y, lights1);
-                        DrawTextureRec(firstpeople->p1movetexture, firstpeople->p1moveframe, { firstpeople->x, firstpeople->y }, WHITE);
-                    }
-                    else {
-                        firstpeople->p1movetexture = texturestop;
-                        firstpeople->p1moveframe = framerecstop;
-                        MoveLight(0, firstpeople->x, firstpeople->y, lights1);
-                        DrawTextureRec(firstpeople->p1movetexture, firstpeople->p1moveframe, { firstpeople->x, firstpeople->y }, WHITE);
-                    }
+        else if (IsKeyDown(KEY_LEFT)) {
+            firstpeople->left(textureleft, framerecleft);
+            MoveLight(0, firstpeople->x, firstpeople->y, lights1);
+            DrawTextureRec(firstpeople->p1movetexture, firstpeople->p1moveframe, { firstpeople->x, firstpeople->y }, WHITE);
+        }
+        else if (IsKeyDown(KEY_UP)) {
+            firstpeople->up(textureup, framerecup);
+            MoveLight(0, firstpeople->x, firstpeople->y, lights1);
+            DrawTextureRec(firstpeople->p1movetexture, firstpeople->p1moveframe, { firstpeople->x, firstpeople->y }, WHITE);
+        }
+        else if (IsKeyDown(KEY_DOWN)) {
+            firstpeople->down(texturedown, framerecdown);
+            MoveLight(0, firstpeople->x, firstpeople->y, lights1);
+            DrawTextureRec(firstpeople->p1movetexture, firstpeople->p1moveframe, { firstpeople->x, firstpeople->y }, WHITE);
+        }
+        else {
+            firstpeople->p1movetexture = texturestop;
+            firstpeople->p1moveframe = framerecstop;
+            MoveLight(0, firstpeople->x, firstpeople->y, lights1);
+            DrawTextureRec(firstpeople->p1movetexture, firstpeople->p1moveframe, { firstpeople->x, firstpeople->y }, WHITE);
+        }
 
-        if (IsKeyDown(KEY_D)) {
+        if (IsKeyDown(KEY_D) && IsKeyDown(KEY_W)) {
+            secondpeople->upright(texture2upright, framerec2upright);
+            MoveLight(0, secondpeople->x, secondpeople->y, lights2);
+            DrawTextureRec(secondpeople->p2movetexture, secondpeople->p2moveframe, { secondpeople->x, secondpeople->y }, WHITE);
+        }
+        else if (IsKeyDown(KEY_A) && IsKeyDown(KEY_W)) {
+            secondpeople->upleft(texture2upleft, framerec2upleft);
+            MoveLight(0, secondpeople->x, secondpeople->y, lights2);
+            DrawTextureRec(secondpeople->p2movetexture, secondpeople->p2moveframe, { secondpeople->x, secondpeople->y }, WHITE);
+        }
+        else if (IsKeyDown(KEY_D) && IsKeyDown(KEY_S)) {
+            secondpeople->downright(texture2downright, framerec2downright);
+            MoveLight(0, secondpeople->x, secondpeople->y, lights2);
+            DrawTextureRec(secondpeople->p2movetexture, secondpeople->p2moveframe, { secondpeople->x, secondpeople->y }, WHITE);
+        }
+        else if (IsKeyDown(KEY_A) && IsKeyDown(KEY_S)) {
+            secondpeople->downleft(texture2downleft, framerec2downleft);
+            MoveLight(0, secondpeople->x, secondpeople->y, lights2);
+            DrawTextureRec(secondpeople->p2movetexture, secondpeople->p2moveframe, { secondpeople->x, secondpeople->y }, WHITE);
+        }
+        else if (IsKeyDown(KEY_D)) {
             secondpeople->right(texture2right, framerec2right);
             MoveLight(0, secondpeople->x, secondpeople->y, lights2);
             DrawTextureRec(secondpeople->p2movetexture, secondpeople->p2moveframe, { secondpeople->x, secondpeople->y }, WHITE);
@@ -504,13 +442,13 @@ int main(void)
             MoveLight(0, secondpeople->x, secondpeople->y, lights2);
             DrawTextureRec(secondpeople->p2movetexture, secondpeople->p2moveframe, { secondpeople->x, secondpeople->y }, WHITE);
         }
-        else
-        {
+        else {
             secondpeople->p2movetexture = texture2stop;
             secondpeople->p2moveframe = framerec2stop;
             MoveLight(0, secondpeople->x, secondpeople->y, lights2);
             DrawTextureRec(secondpeople->p2movetexture, secondpeople->p2moveframe, { secondpeople->x, secondpeople->y }, WHITE);
         }
+
         if (IsKeyPressed(KEY_F1)) showLines = !showLines;
         bool dirtyLights1 = false;
         bool dirtyLights2 = false;
@@ -580,7 +518,7 @@ int main(void)
                 DrawTextureRec(texture3dead, framerec3dead, { ghostdeadposx[9],ghostdeadposy[9] }, WHITE);
         }
         DrawTextureRec(lightMask.texture, { 0, 0, (float)1000, -(float)1000 }, Vector2Zero(), ColorAlpha(WHITE, showLines ? 0.75f : 1.0f));
-        if (ghost1dead == 0)
+        if (ghost1dead == 0){
             if ((firstpeople->x - ghost1->x >= -50 && firstpeople->x - ghost1->x <= 50) && (firstpeople->y - ghost1->y >= -50 && firstpeople->y - ghost1->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[0] = ghost1->x;
@@ -590,8 +528,7 @@ int main(void)
                 ghost6dead = 0;
                 delete ghost1;
             }
-        if (ghost1dead == 0)
-            if ((secondpeople->x - ghost1->x >= -50 && secondpeople->x - ghost1->x <= 50) && (secondpeople->y - ghost1->y >= -50 && secondpeople->y - ghost1->y <= 50)) {
+            else if ((secondpeople->x - ghost1->x >= -50 && secondpeople->x - ghost1->x <= 50) && (secondpeople->y - ghost1->y >= -50 && secondpeople->y - ghost1->y <= 50)) {
                 secondpeople->point += 5;
                 ghostdeadposx[0] = ghost1->x;
                 ghostdeadposy[0] = ghost1->y;
@@ -600,7 +537,8 @@ int main(void)
                 ghost6dead = 0;
                 delete ghost1;
             }
-        if (ghost2dead == 0)
+        }
+        if (ghost2dead == 0){
             if ((firstpeople->x - ghost2->x >= -50 && firstpeople->x - ghost2->x <= 50) && (firstpeople->y - ghost2->y >= -50 && firstpeople->y - ghost2->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[1] = ghost2->x;
@@ -610,8 +548,7 @@ int main(void)
                 ghost7dead = 0;
                 delete ghost2;
             }
-        if (ghost2dead == 0)
-            if ((secondpeople->x - ghost2->x >= -50 && secondpeople->x - ghost2->x <= 50) && (secondpeople->y - ghost2->y >= -50 && secondpeople->y - ghost2->y <= 50)) {
+            else if ((secondpeople->x - ghost2->x >= -50 && secondpeople->x - ghost2->x <= 50) && (secondpeople->y - ghost2->y >= -50 && secondpeople->y - ghost2->y <= 50)) {
                 secondpeople->point += 5;
                 ghostdeadposx[1] = ghost2->x;
                 ghostdeadposy[1] = ghost2->y;
@@ -620,7 +557,8 @@ int main(void)
                 ghost7dead = 0;
                 delete ghost2;
             }
-        if (ghost3dead == 0)
+        }
+        if (ghost3dead == 0){
             if ((firstpeople->x - ghost3->x >= -50 && firstpeople->x - ghost3->x <= 50) && (firstpeople->y - ghost3->y >= -50 && firstpeople->y - ghost3->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[2] = ghost3->x;
@@ -630,8 +568,7 @@ int main(void)
                 ghost8dead = 0;
                 delete ghost3;
             }
-        if (ghost3dead == 0)
-            if ((secondpeople->x - ghost3->x >= -50 && secondpeople->x - ghost3->x <= 50) && (secondpeople->y - ghost3->y >= -50 && secondpeople->y - ghost3->y <= 50)) {
+            else if ((secondpeople->x - ghost3->x >= -50 && secondpeople->x - ghost3->x <= 50) && (secondpeople->y - ghost3->y >= -50 && secondpeople->y - ghost3->y <= 50)) {
                 secondpeople->point += 5;
                 ghostdeadposx[2] = ghost3->x;
                 ghostdeadposy[2] = ghost3->y;
@@ -640,7 +577,8 @@ int main(void)
                 ghost8dead = 0;
                 delete ghost3;
             }
-        if (ghost4dead == 0)
+        }
+        if (ghost4dead == 0){
             if ((firstpeople->x - ghost4->x >= -50 && firstpeople->x - ghost4->x <= 50) && (firstpeople->y - ghost4->y >= -50 && firstpeople->y - ghost4->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[3] = ghost4->x;
@@ -650,8 +588,7 @@ int main(void)
                 ghost9dead = 0;
                 delete ghost4;
             }
-        if (ghost4dead == 0)
-            if ((secondpeople->x - ghost4->x >= -50 && secondpeople->x - ghost4->x <= 50) && (secondpeople->y - ghost4->y >= -50 && secondpeople->y - ghost4->y <= 50)) {
+            else if ((secondpeople->x - ghost4->x >= -50 && secondpeople->x - ghost4->x <= 50) && (secondpeople->y - ghost4->y >= -50 && secondpeople->y - ghost4->y <= 50)) {
                 secondpeople->point += 5;
                 ghostdeadposx[3] = ghost4->x;
                 ghostdeadposy[3] = ghost4->y;
@@ -660,7 +597,8 @@ int main(void)
                 ghost9dead = 0;
                 delete ghost4;
             }
-        if (ghost5dead == 0)
+        }
+        if (ghost5dead == 0){
             if ((firstpeople->x - ghost5->x >= -50 && firstpeople->x - ghost5->x <= 50) && (firstpeople->y - ghost5->y >= -50 && firstpeople->y - ghost5->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[4] = ghost5->x;
@@ -670,8 +608,7 @@ int main(void)
                 ghost10dead = 0;
                 delete ghost5;
             }
-        if (ghost5dead == 0)
-            if ((secondpeople->x - ghost5->x >= -25 && secondpeople->x - ghost5->x <= 50) && (secondpeople->y - ghost5->y >= -50 && secondpeople->y - ghost5->y <= 50)) {
+            else if ((secondpeople->x - ghost5->x >= -25 && secondpeople->x - ghost5->x <= 50) && (secondpeople->y - ghost5->y >= -50 && secondpeople->y - ghost5->y <= 50)) {
                 secondpeople->point += 5;
                 ghostdeadposx[4] = ghost5->x;
                 ghostdeadposy[4] = ghost5->y;
@@ -680,7 +617,8 @@ int main(void)
                 ghost10dead = 0;
                 delete ghost5;
             }
-        if (ghost6dead == 0)
+        }
+        if (ghost6dead == 0){
             if ((firstpeople->x - ghost6->x >= -25 && firstpeople->x - ghost6->x <= 50) && (firstpeople->y - ghost6->y >= -50 && firstpeople->y - ghost6->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[5] = ghost6->x;
@@ -688,15 +626,15 @@ int main(void)
                 ghost6dead = 2;
                 delete ghost6;
             }
-        if (ghost6dead == 0)
-            if ((secondpeople->x - ghost6->x >= -50 && secondpeople->x - ghost6->x <= 50) && (secondpeople->y - ghost6->y >= -50 && secondpeople->y - ghost6->y <= 50)) {
+            else if ((secondpeople->x - ghost6->x >= -50 && secondpeople->x - ghost6->x <= 50) && (secondpeople->y - ghost6->y >= -50 && secondpeople->y - ghost6->y <= 50)) {
                 secondpeople->point += 5;
                 ghostdeadposx[5] = ghost6->x;
                 ghostdeadposy[5] = ghost6->y;
                 ghost6dead = 2;
                 delete ghost6;
             }
-        if (ghost7dead == 0)
+         }
+        if (ghost7dead == 0){
             if ((firstpeople->x - ghost7->x >= -50 && firstpeople->x - ghost7->x <= 50) && (firstpeople->y - ghost7->y >= -50 && firstpeople->y - ghost7->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[6] = ghost7->x;
@@ -704,15 +642,15 @@ int main(void)
                 ghost7dead = 2;
                 delete ghost7;
             }
-        if (ghost7dead == 0)
-            if ((secondpeople->x - ghost7->x >= -50 && secondpeople->x - ghost7->x <= 50) && (secondpeople->y - ghost7->y >= -50 && secondpeople->y - ghost7->y <= 50)) {
+            else if ((secondpeople->x - ghost7->x >= -50 && secondpeople->x - ghost7->x <= 50) && (secondpeople->y - ghost7->y >= -50 && secondpeople->y - ghost7->y <= 50)) {
                 secondpeople->point += 5;
                 ghostdeadposx[6] = ghost7->x;
                 ghostdeadposy[6] = ghost7->y;
                 ghost7dead = 2;
                 delete ghost7;
             }
-        if (ghost8dead == 0)
+        }
+        if (ghost8dead == 0){
             if ((firstpeople->x - ghost8->x >= -50 && firstpeople->x - ghost8->x <= 50) && (firstpeople->y - ghost8->y >= -50 && firstpeople->y - ghost8->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[7] = ghost8->x;
@@ -720,15 +658,15 @@ int main(void)
                 ghost8dead = 2;
                 delete ghost8;
             }
-        if (ghost8dead == 0)
-            if ((secondpeople->x - ghost8->x >= -50 && secondpeople->x - ghost8->x <= 50) && (secondpeople->y - ghost8->y >= -50 && secondpeople->y - ghost8->y <= 50)) {
+            else if ((secondpeople->x - ghost8->x >= -50 && secondpeople->x - ghost8->x <= 50) && (secondpeople->y - ghost8->y >= -50 && secondpeople->y - ghost8->y <= 50)) {
                 secondpeople->point += 5;
                 ghostdeadposx[7] = ghost8->x;
                 ghostdeadposy[7] = ghost8->y;
                 ghost8dead = 2;
                 delete ghost8;
             }
-        if (ghost9dead == 0)
+        }
+        if (ghost9dead == 0) {
             if ((firstpeople->x - ghost9->x >= -50 && firstpeople->x - ghost9->x <= 50) && (firstpeople->y - ghost9->y >= -50 && firstpeople->y - ghost9->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[8] = ghost9->x;
@@ -736,15 +674,15 @@ int main(void)
                 ghost9dead = 2;
                 delete ghost9;
             }
-        if (ghost9dead == 0)
-            if ((secondpeople->x - ghost9->x >= -50 && secondpeople->x - ghost9->x <= 50) && (secondpeople->y - ghost9->y >= -50 && secondpeople->y - ghost9->y <= 50)) {
+            else if ((secondpeople->x - ghost9->x >= -50 && secondpeople->x - ghost9->x <= 50) && (secondpeople->y - ghost9->y >= -50 && secondpeople->y - ghost9->y <= 50)) {
                 secondpeople->point += 5;
                 ghostdeadposx[8] = ghost9->x;
                 ghostdeadposy[8] = ghost9->y;
                 ghost9dead = 2;
                 delete ghost9;
             }
-        if (ghost10dead == 0)
+        }
+        if (ghost10dead == 0){
             if ((firstpeople->x - ghost10->x >= -50 && firstpeople->x - ghost10->x <= 50) && (firstpeople->y - ghost10->y >= -50 && firstpeople->y - ghost10->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[9] = ghost10->x;
@@ -752,14 +690,14 @@ int main(void)
                 ghost10dead = 2;
                 delete ghost10;
             }
-        if (ghost10dead == 0)
-            if ((secondpeople->x - ghost10->x >= -50 && secondpeople->x - ghost10->x <= 50) && (secondpeople->y - ghost10->y >= -50 && secondpeople->y - ghost10->y <= 50)) {
+            else if ((secondpeople->x - ghost10->x >= -50 && secondpeople->x - ghost10->x <= 50) && (secondpeople->y - ghost10->y >= -50 && secondpeople->y - ghost10->y <= 50)) {
                 secondpeople->point += 5;
                 ghostdeadposx[9] = ghost10->x;
                 ghostdeadposy[9] = ghost10->y;
                 ghost10dead = 2;
                 delete ghost10;
             }
+        }
         if (secondpeople->point + firstpeople->point == 50) {
             if (secondpeople->point > firstpeople->point) {
                 DrawText(TextFormat("Second player wins"), 1000, 300, 20, LIME);
