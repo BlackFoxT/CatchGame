@@ -36,3 +36,43 @@ void Player1::left(Texture2D texture, Rectangle frame) {
 	if (x < 0)
 		x = 0;
 }
+void Player1::upright(Texture2D texture, Rectangle frame) {
+	p1movetexture = texture;
+	p1moveframe = frame;
+	x += speed;
+	y -= speed;
+	if (x > 950)
+		x = 950;
+	if (y < 0)
+		y = 0;
+}
+void Player1::upleft(Texture2D texture, Rectangle frame) {
+	p1movetexture = texture;
+	p1moveframe = frame;
+	x -= speed;
+	y -= speed;
+	if (x < 0)
+		x = 0;
+	if (y < 0)
+		y = 0;
+}
+void Player1::downright(Texture2D texture, Rectangle frame) {
+	p1movetexture = texture;
+	p1moveframe = frame;
+	x += speed;
+	y += speed;
+	if (x > 950)
+		x = 950;
+	if (y > 950)
+		y = 950;
+}
+void Player1::downleft(Texture2D texture, Rectangle frame) {
+	p1movetexture = texture;
+	p1moveframe = frame;
+	x -= speed;
+	y += speed;
+	if (x < 0)
+		x = 0;
+	if (y > 950)
+		y = 950;
+}
