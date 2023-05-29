@@ -5,6 +5,9 @@
 #include "Player2.hpp"
 #include "Ghost.hpp"
 #include <stdlib.h>  
+#include <iostream>
+#include <vector>  
+#include "Movement.hpp"
 
 #define RLGL_SRC_ALPHA 0x0302
 #define RLGL_MIN 0x8007
@@ -27,19 +30,20 @@ typedef struct LightInfo {
     RenderTexture mask;
     float outerRadius;
     Rectangle bounds;
-    ShadowGeometry shadows[MAX_SHADOWS];
+    std::vector<ShadowGeometry> shadows;
+    //ShadowGeometry shadows[MAX_SHADOWS];
     int shadowCount;
 } LightInfo;
 
 LightInfo lights1[MAX_LIGHTS] = { 0 };
 LightInfo lights2[MAX_LIGHTS] = { 0 };
 
-void GhostMove(int* step, int* ghostdirection, Ghost* ghost, Texture2D texture3up, Rectangle framerec3up, Texture2D texture3down, Rectangle framerec3down, Texture2D texture3left, Rectangle framerec3left, Texture2D texture3right, Rectangle framerec3right, Texture2D texture3upright, Rectangle framerec3upright, Texture2D texture3upleft, Rectangle framerec3upleft, Texture2D texture3downright, Rectangle framerec3downright, Texture2D texture3downleft, Rectangle framerec3downleft) {
+inline void GhostMove(int* step, int* ghostdirection, Ghost* ghost, Texture2D texture3up, Rectangle framerec3up, Texture2D texture3down, Rectangle framerec3down, Texture2D texture3left, Rectangle framerec3left, Texture2D texture3right, Rectangle framerec3right, Texture2D texture3upright, Rectangle framerec3upright, Texture2D texture3upleft, Rectangle framerec3upleft, Texture2D texture3downright, Rectangle framerec3downright, Texture2D texture3downleft, Rectangle framerec3downleft) {
     if (*step < 0) {
         *ghostdirection = rand() % 8;
         *step = 150;
     }
-    *step = *step-1;
+    *step = *step - 1;
     if (*ghostdirection == 0) {
         ghost->up(texture3up, framerec3up);
     }
@@ -66,7 +70,7 @@ void GhostMove(int* step, int* ghostdirection, Ghost* ghost, Texture2D texture3u
     }
 }
 
-void MoveLight(int slot, float x, float y, LightInfo lights[MAX_LIGHTS]){
+void MoveLight(int slot, float x, float y, LightInfo lights[MAX_LIGHTS]) {
     lights[slot].dirty = true;
     lights[slot].position.x = x;
     lights[slot].position.y = y;
@@ -74,8 +78,7 @@ void MoveLight(int slot, float x, float y, LightInfo lights[MAX_LIGHTS]){
     lights[slot].bounds.y = y - lights[slot].outerRadius;
 }
 
-void ComputeShadowVolumeForEdge(int slot, Vector2 sp, Vector2 ep, LightInfo lights[MAX_LIGHTS])
-{
+void ComputeShadowVolumeForEdge(int slot, Vector2 sp, Vector2 ep, LightInfo lights[MAX_LIGHTS]) {
     if (lights[slot].shadowCount >= MAX_SHADOWS) return;
 
     float extension = lights[slot].outerRadius * 2;
@@ -91,7 +94,7 @@ void ComputeShadowVolumeForEdge(int slot, Vector2 sp, Vector2 ep, LightInfo ligh
     lights[slot].shadows[lights[slot].shadowCount].vertices[3] = spProjection;
 }
 
-void DrawLightMask(int slot, LightInfo lights[MAX_LIGHTS]){
+void DrawLightMask(int slot, LightInfo lights[MAX_LIGHTS]) {
     BeginTextureMode(lights[slot].mask);
     ClearBackground(WHITE);
     rlSetBlendFactors(RLGL_SRC_ALPHA, RLGL_SRC_ALPHA, RLGL_MIN);
@@ -106,7 +109,7 @@ void DrawLightMask(int slot, LightInfo lights[MAX_LIGHTS]){
     EndTextureMode();
 }
 
-void SetupLight(int slot, float x, float y, float radius, LightInfo lights[MAX_LIGHTS]){
+void SetupLight(int slot, float x, float y, float radius, LightInfo lights[MAX_LIGHTS]) {
     lights[slot].active = true;
     lights[slot].valid = false;
     lights[slot].mask = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
@@ -118,14 +121,14 @@ void SetupLight(int slot, float x, float y, float radius, LightInfo lights[MAX_L
     DrawLightMask(slot, lights);
 }
 
-bool UpdateLight(int slot, Rectangle* boxes, int count, LightInfo lights[MAX_LIGHTS]){
+bool UpdateLight(int slot, Rectangle* boxes, int count, LightInfo lights[MAX_LIGHTS]) {
     if (!lights[slot].active || !lights[slot].dirty) return false;
 
     lights[slot].dirty = false;
     lights[slot].shadowCount = 0;
     lights[slot].valid = false;
 
-    for (int i = 0; i < count; i++){
+    for (int i = 0; i < count; i++) {
         if (CheckCollisionPointRec(lights[slot].position, boxes[i])) return false;
 
         if (!CheckCollisionRecs(lights[slot].bounds, boxes[i])) continue;
@@ -158,7 +161,7 @@ bool UpdateLight(int slot, Rectangle* boxes, int count, LightInfo lights[MAX_LIG
     return true;
 }
 
-int main(void){
+int main(void) {
     const int screenWidth = 1500;
     const int screenHeight = 1000;
 
@@ -322,11 +325,14 @@ int main(void){
     int ghost8dead = 1;
     int ghost9dead = 1;
     int ghost10dead = 1;
-
-    int ghostdirections[] = { rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8 };
-    int steps[] = { 150,150,150,150,150,150,150,150,150,150 };
-    float ghostdeadposx[] = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
-    float ghostdeadposy[] = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
+    std::vector<int> ghostdirections = { rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8 };
+    //int ghostdirections[] = { rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8 };
+    std::vector<int> steps = { 150,150,150,150,150,150,150,150,150,150 };
+    //int steps[] = { 150,150,150,150,150,150,150,150,150,150 };
+    std::vector<float> ghostdeadposx = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
+    std::vector<float> ghostdeadposy = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
+    //float ghostdeadposx[] = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
+    //float ghostdeadposy[] = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
 
     firstpeople->p1movetexture = texturestop;
     firstpeople->p1moveframe = framerecstop;
@@ -518,7 +524,7 @@ int main(void){
                 DrawTextureRec(texture3dead, framerec3dead, { ghostdeadposx[9],ghostdeadposy[9] }, WHITE);
         }
         DrawTextureRec(lightMask.texture, { 0, 0, (float)1000, -(float)1000 }, Vector2Zero(), ColorAlpha(WHITE, showLines ? 0.75f : 1.0f));
-        if (ghost1dead == 0){
+        if (ghost1dead == 0) {
             if ((firstpeople->x - ghost1->x >= -50 && firstpeople->x - ghost1->x <= 50) && (firstpeople->y - ghost1->y >= -50 && firstpeople->y - ghost1->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[0] = ghost1->x;
@@ -527,6 +533,7 @@ int main(void){
                 ghost6 = new Ghost(rand() % 950, rand() % 950);
                 ghost6dead = 0;
                 delete ghost1;
+                
             }
             else if ((secondpeople->x - ghost1->x >= -50 && secondpeople->x - ghost1->x <= 50) && (secondpeople->y - ghost1->y >= -50 && secondpeople->y - ghost1->y <= 50)) {
                 secondpeople->point += 5;
@@ -538,7 +545,7 @@ int main(void){
                 delete ghost1;
             }
         }
-        if (ghost2dead == 0){
+        if (ghost2dead == 0) {
             if ((firstpeople->x - ghost2->x >= -50 && firstpeople->x - ghost2->x <= 50) && (firstpeople->y - ghost2->y >= -50 && firstpeople->y - ghost2->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[1] = ghost2->x;
@@ -558,7 +565,7 @@ int main(void){
                 delete ghost2;
             }
         }
-        if (ghost3dead == 0){
+        if (ghost3dead == 0) {
             if ((firstpeople->x - ghost3->x >= -50 && firstpeople->x - ghost3->x <= 50) && (firstpeople->y - ghost3->y >= -50 && firstpeople->y - ghost3->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[2] = ghost3->x;
@@ -578,7 +585,7 @@ int main(void){
                 delete ghost3;
             }
         }
-        if (ghost4dead == 0){
+        if (ghost4dead == 0) {
             if ((firstpeople->x - ghost4->x >= -50 && firstpeople->x - ghost4->x <= 50) && (firstpeople->y - ghost4->y >= -50 && firstpeople->y - ghost4->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[3] = ghost4->x;
@@ -598,7 +605,7 @@ int main(void){
                 delete ghost4;
             }
         }
-        if (ghost5dead == 0){
+        if (ghost5dead == 0) {
             if ((firstpeople->x - ghost5->x >= -50 && firstpeople->x - ghost5->x <= 50) && (firstpeople->y - ghost5->y >= -50 && firstpeople->y - ghost5->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[4] = ghost5->x;
@@ -618,7 +625,7 @@ int main(void){
                 delete ghost5;
             }
         }
-        if (ghost6dead == 0){
+        if (ghost6dead == 0) {
             if ((firstpeople->x - ghost6->x >= -25 && firstpeople->x - ghost6->x <= 50) && (firstpeople->y - ghost6->y >= -50 && firstpeople->y - ghost6->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[5] = ghost6->x;
@@ -633,8 +640,8 @@ int main(void){
                 ghost6dead = 2;
                 delete ghost6;
             }
-         }
-        if (ghost7dead == 0){
+        }
+        if (ghost7dead == 0) {
             if ((firstpeople->x - ghost7->x >= -50 && firstpeople->x - ghost7->x <= 50) && (firstpeople->y - ghost7->y >= -50 && firstpeople->y - ghost7->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[6] = ghost7->x;
@@ -650,7 +657,7 @@ int main(void){
                 delete ghost7;
             }
         }
-        if (ghost8dead == 0){
+        if (ghost8dead == 0) {
             if ((firstpeople->x - ghost8->x >= -50 && firstpeople->x - ghost8->x <= 50) && (firstpeople->y - ghost8->y >= -50 && firstpeople->y - ghost8->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[7] = ghost8->x;
@@ -682,7 +689,7 @@ int main(void){
                 delete ghost9;
             }
         }
-        if (ghost10dead == 0){
+        if (ghost10dead == 0) {
             if ((firstpeople->x - ghost10->x >= -50 && firstpeople->x - ghost10->x <= 50) && (firstpeople->y - ghost10->y >= -50 && firstpeople->y - ghost10->y <= 50)) {
                 firstpeople->point += 5;
                 ghostdeadposx[9] = ghost10->x;
