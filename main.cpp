@@ -169,9 +169,28 @@ int main(void) {
     Player1* firstpeople = new Player1;
     Player2* secondpeople = new Player2;
 
-    Image background = LoadImage("dark.png");
-    Texture2D backgroundtexture = LoadTextureFromImage(background);
-    Rectangle backgroundframerec = { 0.0f,0.0f,(float)1000,(float)1000 };
+    Image background;
+    Texture2D backgroundtexture;
+    Rectangle backgroundframerec;
+
+    try
+    {
+        background = LoadImage("dark.png");
+        if (background.data == 0) throw 1;
+        else {
+            backgroundtexture = LoadTextureFromImage(background);
+            backgroundframerec = { 0.0f,0.0f,(float)1000,(float)1000 };
+        }
+        
+    }
+    catch (int e)
+    {
+        if(e == 1)
+        std::cout << "Failed to open the file!!!";
+        return 0;
+    }
+
+
 
     Image point = LoadImage("point.png");
     Texture2D texture = LoadTextureFromImage(point);
@@ -533,7 +552,7 @@ int main(void) {
                 ghost6 = new Ghost(rand() % 950, rand() % 950);
                 ghost6dead = 0;
                 delete ghost1;
-                
+
             }
             else if ((secondpeople->x - ghost1->x >= -50 && secondpeople->x - ghost1->x <= 50) && (secondpeople->y - ghost1->y >= -50 && secondpeople->y - ghost1->y <= 50)) {
                 secondpeople->point += 5;
