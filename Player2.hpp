@@ -1,6 +1,7 @@
 #pragma once
+#include "Movement.hpp"
 
-class Player2
+class Player2 : public Movement
 {
 public:
 	Player2();
@@ -9,13 +10,13 @@ public:
 	float speed;
 	Texture2D p2movetexture;
 	Rectangle p2moveframe;
-	void up(Texture2D texture, Rectangle frame);
-	void down(Texture2D texture, Rectangle frame);
-	void right(Texture2D texture, Rectangle frame);
-	void left(Texture2D texture, Rectangle frame);
-	void upright(Texture2D texture, Rectangle frame);
-	void upleft(Texture2D texture, Rectangle frame);
-	void downright(Texture2D texture, Rectangle frame);
-	void downleft(Texture2D texture, Rectangle frame);
 
+	void up(Texture2D texture, Rectangle frame, int a = 0);
+	void down(Texture2D texture, Rectangle frame, int a = 0);
+	void right(Texture2D texture, Rectangle frame, int a = 0);
+	void left(Texture2D texture, Rectangle frame, int a = 0);
+	void upright(Texture2D texture, Rectangle frame, int a = 0);
+	void upleft(Texture2D texture, Rectangle frame, int a = 0);
+	void downright(Texture2D texture, Rectangle frame, int a = 0);
+	void downleft(Texture2D texture, Rectangle frame, int a = 0);
 };
