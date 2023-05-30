@@ -1,19 +1,15 @@
-#include "raylib.h"
-#include "Movement.hpp"
+#pragma once
 
-	void up(Texture2D texture, Rectangle frame, int a){
-	}
-	void down(Texture2D texture, Rectangle frame, int a) {
-	}
-	void right(Texture2D texture, Rectangle frame, int a) {
-	}
-	void left(Texture2D texture, Rectangle frame, int a) {
-	}
-	void upright(Texture2D texture, Rectangle frame, int a) {
-	}
-	void upleft(Texture2D texture, Rectangle frame, int a) {
-	}
-	void downright(Texture2D texture, Rectangle frame, int a) {
-	}
-	void downleft(Texture2D texture, Rectangle frame, int a){
-	}
+class Movement
+{
+public:
+
+	void up(Texture2D texture, Rectangle frame);
+	void down(Texture2D texture, Rectangle frame);
+	void right(Texture2D texture, Rectangle frame);
+	void left(Texture2D texture, Rectangle frame);
+	void upright(Texture2D texture, Rectangle frame);
+	void upleft(Texture2D texture, Rectangle frame);
+	void downright(Texture2D texture, Rectangle frame);
+	void downleft(Texture2D texture, Rectangle frame);
+};
