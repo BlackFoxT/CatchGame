@@ -31,7 +31,6 @@ typedef struct LightInfo {
     float outerRadius;
     Rectangle bounds;
     std::vector<ShadowGeometry> shadows;
-    //ShadowGeometry shadows[MAX_SHADOWS];
     int shadowCount;
 } LightInfo;
 
@@ -70,10 +69,10 @@ inline void GhostMove(int* step, int* ghostdirection, Ghost* ghost, Texture2D te
     }
 }
 
-void MoveLight(int slot, float x, float y, LightInfo lights[MAX_LIGHTS]) {
+void MoveLight(int slot, float x, float y, LightInfo lights[MAX_LIGHTS], int a = 0, int b = 0) {
     lights[slot].dirty = true;
-    lights[slot].position.x = x;
-    lights[slot].position.y = y;
+    lights[slot].position.x = x + a;
+    lights[slot].position.y = y + b;
     lights[slot].bounds.x = x - lights[slot].outerRadius;
     lights[slot].bounds.y = y - lights[slot].outerRadius;
 }
@@ -344,14 +343,11 @@ int main(void) {
     int ghost8dead = 1;
     int ghost9dead = 1;
     int ghost10dead = 1;
+
     std::vector<int> ghostdirections = { rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8 };
-    //int ghostdirections[] = { rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8,rand() % 8 };
     std::vector<int> steps = { 150,150,150,150,150,150,150,150,150,150 };
-    //int steps[] = { 150,150,150,150,150,150,150,150,150,150 };
     std::vector<float> ghostdeadposx = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
     std::vector<float> ghostdeadposy = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
-    //float ghostdeadposx[] = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
-    //float ghostdeadposy[] = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
 
     firstpeople->p1movetexture = texturestop;
     firstpeople->p1moveframe = framerecstop;
